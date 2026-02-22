@@ -13,7 +13,7 @@ The following table lists the versions of BIM-Chain that are currently receiving
 
 If you discover a security vulnerability in this project, **please do NOT open a public GitHub issue.** Instead, report it privately by emailing:
 
-**bimchain.security@protonmail.com**
+**a.shojaei.k.k@gmail.com**
 
 ### What to Include in Your Report
 

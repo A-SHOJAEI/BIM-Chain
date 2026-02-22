@@ -1,0 +1,52 @@
+# ---------------------------------------------------------------------------
+# BIM-Chain Crypto Configuration
+# Defines the organizational structure for certificate generation
+# Used by: cryptogen tool (dev/test only; production uses Fabric CA)
+# ---------------------------------------------------------------------------
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: bimchain.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer1
+        SANS:
+          - localhost
+          - orderer1.bimchain.com
+      - Hostname: orderer2
+        SANS:
+          - localhost
+          - orderer2.bimchain.com
+      - Hostname: orderer3
+        SANS:
+          - localhost
+          - orderer3.bimchain.com
+      - Hostname: orderer4
+        SANS:
+          - localhost
+          - orderer4.bimchain.com
+      - Hostname: orderer5
+        SANS:
+          - localhost
+          - orderer5.bimchain.com
+
+PeerOrgs:
+  - Name: ArchitectOrg
+    Domain: architect.bimchain.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+      SANS:
+        - localhost
+    Users:
+      Count: 1
+
+  - Name: EngineerOrg
+    Domain: engineer.bimchain.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+      SANS:
+        - localhost
+    Users:
+      Count: 1

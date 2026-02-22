@@ -1,0 +1,108 @@
+name: Integration CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  chaincode:
+    name: Go Chaincode Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
+      - name: Run chaincode tests
+        working-directory: packages/chaincode-go
+        run: go test -v -count=1 ./...
+
+  middleware:
+    name: Middleware Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: packages/middleware/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packages/middleware
+        run: npm ci
+
+      - name: Lint
+        working-directory: packages/middleware
+        run: npm run lint
+
+      - name: Run tests
+        working-directory: packages/middleware
+        run: npm test -- --coverage
+
+  frontend:
+    name: Frontend Build & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: packages/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packages/frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: packages/frontend
+        run: npm run lint
+
+      - name: Run tests
+        working-directory: packages/frontend
+        run: npm test -- --coverage
+
+      - name: Build
+        working-directory: packages/frontend
+        run: npm run build
+
+  revit-plugin:
+    name: Revit Plugin Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        working-directory: packages/revit-plugin
+        run: dotnet restore
+
+      - name: Build
+        working-directory: packages/revit-plugin
+        run: dotnet build --no-restore
+
+      - name: Test
+        working-directory: packages/revit-plugin
+        run: dotnet test --no-build --verbosity normal
+
+  all-pass:
+    name: All Checks Pass
+    needs: [chaincode, middleware, frontend, revit-plugin]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All integration checks passed
+        run: echo "All integration checks passed successfully"

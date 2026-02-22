@@ -1,0 +1,14 @@
+{
+  "name": "bim-chain-contract-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cross-component contract tests for BIM-Chain shared types and interfaces",
+  "scripts": {
+    "test": "jest --verbose"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "@types/jest": "^29.5.12"
+  }
+}

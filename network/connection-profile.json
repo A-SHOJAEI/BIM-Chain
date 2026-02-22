@@ -1,0 +1,47 @@
+{
+  "name": "bimchain-network",
+  "version": "1.0.0",
+  "peers": {
+    "peer0.architect.bimchain.com": {
+      "url": "grpcs://localhost:7051",
+      "tlsCACerts": {
+        "path": "../network/crypto-config/peerOrganizations/architect.bimchain.com/peers/peer0.architect.bimchain.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.architect.bimchain.com"
+      }
+    }
+  },
+  "orderers": {
+    "orderer1.bimchain.com": {
+      "url": "grpcs://localhost:7050",
+      "tlsCACerts": {
+        "path": "../network/crypto-config/ordererOrganizations/bimchain.com/orderers/orderer1.bimchain.com/msp/tlscacerts/tlsca.bimchain.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer1.bimchain.com"
+      }
+    }
+  },
+  "organizations": {
+    "ArchitectOrg": {
+      "mspid": "ArchitectOrgMSP",
+      "peers": ["peer0.architect.bimchain.com"],
+      "certificateAuthorities": ["ca.architect.bimchain.com"],
+      "adminPrivateKey": {
+        "path": "../network/crypto-config/peerOrganizations/architect.bimchain.com/users/Admin@architect.bimchain.com/msp/keystore/"
+      },
+      "signedCert": {
+        "path": "../network/crypto-config/peerOrganizations/architect.bimchain.com/users/Admin@architect.bimchain.com/msp/signcerts/Admin@architect.bimchain.com-cert.pem"
+      }
+    }
+  },
+  "channels": {
+    "bim-project": {
+      "orderers": ["orderer1.bimchain.com"],
+      "peers": {
+        "peer0.architect.bimchain.com": {}
+      }
+    }
+  }
+}

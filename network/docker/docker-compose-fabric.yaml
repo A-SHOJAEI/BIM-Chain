@@ -1,0 +1,453 @@
+version: "3.8"
+
+volumes:
+  orderer1.bimchain.com:
+  orderer2.bimchain.com:
+  orderer3.bimchain.com:
+  orderer4.bimchain.com:
+  orderer5.bimchain.com:
+  peer0.architect.bimchain.com:
+  peer1.architect.bimchain.com:
+  peer0.engineer.bimchain.com:
+  peer1.engineer.bimchain.com:
+  couchdb.peer0.architect:
+  couchdb.peer1.architect:
+  couchdb.peer0.engineer:
+  couchdb.peer1.engineer:
+
+networks:
+  bimchain:
+    name: bimchain_network
+    driver: bridge
+
+services:
+  # ---------------------------------------------------------------------------
+  # Certificate Authorities
+  # ---------------------------------------------------------------------------
+  ca.architect.bimchain.com:
+    image: hyperledger/fabric-ca:1.5
+    container_name: ca.architect.bimchain.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-architect
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_PORT=7054
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+    volumes:
+      - ../crypto-config/fabric-ca/architect:/etc/hyperledger/fabric-ca-server
+    networks:
+      - bimchain
+
+  ca.engineer.bimchain.com:
+    image: hyperledger/fabric-ca:1.5
+    container_name: ca.engineer.bimchain.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-engineer
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_PORT=8054
+    ports:
+      - "8054:8054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+    volumes:
+      - ../crypto-config/fabric-ca/engineer:/etc/hyperledger/fabric-ca-server
+    networks:
+      - bimchain
+
+  # ---------------------------------------------------------------------------
+  # Orderer Nodes (Raft Consensus)
+  # ---------------------------------------------------------------------------
+  orderer1.bimchain.com:
+    image: hyperledger/fabric-orderer:2.5
+    container_name: orderer1.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=none
+      - ORDERER_CHANNELPARTICIPATION_ENABLED=true
+      - ORDERER_ADMIN_TLS_ENABLED=true
+      - ORDERER_ADMIN_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_ADMIN_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
+    working_dir: /root
+    command: orderer
+    ports:
+      - "7050:7050"
+      - "7053:7053"
+    volumes:
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer1.bimchain.com/msp:/var/hyperledger/orderer/msp
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer1.bimchain.com/tls:/var/hyperledger/orderer/tls
+      - orderer1.bimchain.com:/var/hyperledger/production/orderer
+    networks:
+      - bimchain
+
+  orderer2.bimchain.com:
+    image: hyperledger/fabric-orderer:2.5
+    container_name: orderer2.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=none
+      - ORDERER_CHANNELPARTICIPATION_ENABLED=true
+      - ORDERER_ADMIN_TLS_ENABLED=true
+      - ORDERER_ADMIN_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_ADMIN_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
+    working_dir: /root
+    command: orderer
+    ports:
+      - "8050:7050"
+      - "8053:7053"
+    volumes:
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer2.bimchain.com/msp:/var/hyperledger/orderer/msp
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer2.bimchain.com/tls:/var/hyperledger/orderer/tls
+      - orderer2.bimchain.com:/var/hyperledger/production/orderer
+    networks:
+      - bimchain
+
+  orderer3.bimchain.com:
+    image: hyperledger/fabric-orderer:2.5
+    container_name: orderer3.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=none
+      - ORDERER_CHANNELPARTICIPATION_ENABLED=true
+      - ORDERER_ADMIN_TLS_ENABLED=true
+      - ORDERER_ADMIN_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_ADMIN_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
+    working_dir: /root
+    command: orderer
+    ports:
+      - "9050:7050"
+      - "9053:7053"
+    volumes:
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer3.bimchain.com/msp:/var/hyperledger/orderer/msp
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer3.bimchain.com/tls:/var/hyperledger/orderer/tls
+      - orderer3.bimchain.com:/var/hyperledger/production/orderer
+    networks:
+      - bimchain
+
+  orderer4.bimchain.com:
+    image: hyperledger/fabric-orderer:2.5
+    container_name: orderer4.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=none
+      - ORDERER_CHANNELPARTICIPATION_ENABLED=true
+      - ORDERER_ADMIN_TLS_ENABLED=true
+      - ORDERER_ADMIN_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_ADMIN_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
+    working_dir: /root
+    command: orderer
+    ports:
+      - "10050:7050"
+      - "10053:7053"
+    volumes:
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer4.bimchain.com/msp:/var/hyperledger/orderer/msp
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer4.bimchain.com/tls:/var/hyperledger/orderer/tls
+      - orderer4.bimchain.com:/var/hyperledger/production/orderer
+    networks:
+      - bimchain
+
+  orderer5.bimchain.com:
+    image: hyperledger/fabric-orderer:2.5
+    container_name: orderer5.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=none
+      - ORDERER_CHANNELPARTICIPATION_ENABLED=true
+      - ORDERER_ADMIN_TLS_ENABLED=true
+      - ORDERER_ADMIN_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_ADMIN_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
+    working_dir: /root
+    command: orderer
+    ports:
+      - "11050:7050"
+      - "11053:7053"
+    volumes:
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer5.bimchain.com/msp:/var/hyperledger/orderer/msp
+      - ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer5.bimchain.com/tls:/var/hyperledger/orderer/tls
+      - orderer5.bimchain.com:/var/hyperledger/production/orderer
+    networks:
+      - bimchain
+
+  # ---------------------------------------------------------------------------
+  # CouchDB State Databases
+  # ---------------------------------------------------------------------------
+  couchdb.peer0.architect:
+    image: couchdb:3.3
+    container_name: couchdb.peer0.architect
+    environment:
+      - COUCHDB_USER=bimadmin
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+    ports:
+      - "5984:5984"
+    volumes:
+      - couchdb.peer0.architect:/opt/couchdb/data
+    networks:
+      - bimchain
+
+  couchdb.peer1.architect:
+    image: couchdb:3.3
+    container_name: couchdb.peer1.architect
+    environment:
+      - COUCHDB_USER=bimadmin
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+    ports:
+      - "12984:5984"
+    volumes:
+      - couchdb.peer1.architect:/opt/couchdb/data
+    networks:
+      - bimchain
+
+  couchdb.peer0.engineer:
+    image: couchdb:3.3
+    container_name: couchdb.peer0.engineer
+    environment:
+      - COUCHDB_USER=bimadmin
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+    ports:
+      - "7984:5984"
+    volumes:
+      - couchdb.peer0.engineer:/opt/couchdb/data
+    networks:
+      - bimchain
+
+  couchdb.peer1.engineer:
+    image: couchdb:3.3
+    container_name: couchdb.peer1.engineer
+    environment:
+      - COUCHDB_USER=bimadmin
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+    ports:
+      - "8984:5984"
+    volumes:
+      - couchdb.peer1.engineer:/opt/couchdb/data
+    networks:
+      - bimchain
+
+  # ---------------------------------------------------------------------------
+  # Peer Nodes - ArchitectOrg
+  # ---------------------------------------------------------------------------
+  peer0.architect.bimchain.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.architect.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=bimchain_network
+      - CORE_PEER_ID=peer0.architect.bimchain.com
+      - CORE_PEER_ADDRESS=peer0.architect.bimchain.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.architect.bimchain.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.architect.bimchain.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.architect.bimchain.com:7051
+      - CORE_PEER_LOCALMSPID=ArchitectOrgMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.peer0.architect:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=bimadmin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+      - CORE_METRICS_PROVIDER=prometheus
+    working_dir: /etc/hyperledger/fabric/peer
+    command: peer node start
+    ports:
+      - "7051:7051"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/architect.bimchain.com/peers/peer0.architect.bimchain.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/architect.bimchain.com/peers/peer0.architect.bimchain.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.architect.bimchain.com:/var/hyperledger/production
+    depends_on:
+      - couchdb.peer0.architect
+    networks:
+      - bimchain
+
+  peer1.architect.bimchain.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer1.architect.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=bimchain_network
+      - CORE_PEER_ID=peer1.architect.bimchain.com
+      - CORE_PEER_ADDRESS=peer1.architect.bimchain.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.architect.bimchain.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.architect.bimchain.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.architect.bimchain.com:8051
+      - CORE_PEER_LOCALMSPID=ArchitectOrgMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.peer1.architect:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=bimadmin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+      - CORE_METRICS_PROVIDER=prometheus
+    working_dir: /etc/hyperledger/fabric/peer
+    command: peer node start
+    ports:
+      - "8051:8051"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/architect.bimchain.com/peers/peer1.architect.bimchain.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/architect.bimchain.com/peers/peer1.architect.bimchain.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.architect.bimchain.com:/var/hyperledger/production
+    depends_on:
+      - couchdb.peer1.architect
+    networks:
+      - bimchain
+
+  # ---------------------------------------------------------------------------
+  # Peer Nodes - EngineerOrg
+  # ---------------------------------------------------------------------------
+  peer0.engineer.bimchain.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer0.engineer.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=bimchain_network
+      - CORE_PEER_ID=peer0.engineer.bimchain.com
+      - CORE_PEER_ADDRESS=peer0.engineer.bimchain.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.engineer.bimchain.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.engineer.bimchain.com:10051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.engineer.bimchain.com:9051
+      - CORE_PEER_LOCALMSPID=EngineerOrgMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.peer0.engineer:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=bimadmin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+      - CORE_METRICS_PROVIDER=prometheus
+    working_dir: /etc/hyperledger/fabric/peer
+    command: peer node start
+    ports:
+      - "9051:9051"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/engineer.bimchain.com/peers/peer0.engineer.bimchain.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/engineer.bimchain.com/peers/peer0.engineer.bimchain.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.engineer.bimchain.com:/var/hyperledger/production
+    depends_on:
+      - couchdb.peer0.engineer
+    networks:
+      - bimchain
+
+  peer1.engineer.bimchain.com:
+    image: hyperledger/fabric-peer:2.5
+    container_name: peer1.engineer.bimchain.com
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=bimchain_network
+      - CORE_PEER_ID=peer1.engineer.bimchain.com
+      - CORE_PEER_ADDRESS=peer1.engineer.bimchain.com:10051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.engineer.bimchain.com:10052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.engineer.bimchain.com:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.engineer.bimchain.com:10051
+      - CORE_PEER_LOCALMSPID=EngineerOrgMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.peer1.engineer:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=bimadmin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD:-changeme}
+      - CORE_METRICS_PROVIDER=prometheus
+    working_dir: /etc/hyperledger/fabric/peer
+    command: peer node start
+    ports:
+      - "10051:10051"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../crypto-config/peerOrganizations/engineer.bimchain.com/peers/peer1.engineer.bimchain.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/engineer.bimchain.com/peers/peer1.engineer.bimchain.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.engineer.bimchain.com:/var/hyperledger/production
+    depends_on:
+      - couchdb.peer1.engineer
+    networks:
+      - bimchain

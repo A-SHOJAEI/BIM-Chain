@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+.next/
+out/
+bin/
+obj/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test outputs
+coverage/
+*.out
+TestResults/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Fabric crypto (NEVER commit these)
+network/crypto-config/
+network/channel-artifacts/
+**/wallet/
+**/keystore/
+*.pem
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+npm-debug.log*
+
+# Go test binary
+*.test
+
+# .NET
+*.user
+*.suo
+
+# Internal dev files
+MANUAL_TEST_RESULTS.md
+_gen.js
+
+# Misc

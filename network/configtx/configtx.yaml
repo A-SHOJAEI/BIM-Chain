@@ -1,0 +1,198 @@
+################################################################################
+#   BIM-Chain Hyperledger Fabric Network Configuration
+#   configtx.yaml - Channel configuration for BIM project management
+#   Uses Fabric 2.5 channel participation API (no system channel)
+################################################################################
+
+Organizations:
+  - &OrdererOrg
+    Name: OrdererOrg
+    ID: OrdererMSP
+    MSPDir: ../crypto-config/ordererOrganizations/bimchain.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OrdererMSP.admin')"
+    OrdererEndpoints:
+      - orderer1.bimchain.com:7050
+      - orderer2.bimchain.com:7050
+      - orderer3.bimchain.com:7050
+      - orderer4.bimchain.com:7050
+      - orderer5.bimchain.com:7050
+
+  - &ArchitectOrg
+    Name: ArchitectOrg
+    ID: ArchitectOrgMSP
+    MSPDir: ../crypto-config/peerOrganizations/architect.bimchain.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('ArchitectOrgMSP.admin', 'ArchitectOrgMSP.peer', 'ArchitectOrgMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('ArchitectOrgMSP.admin', 'ArchitectOrgMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('ArchitectOrgMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('ArchitectOrgMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.architect.bimchain.com
+        Port: 7051
+
+  - &EngineerOrg
+    Name: EngineerOrg
+    ID: EngineerOrgMSP
+    MSPDir: ../crypto-config/peerOrganizations/engineer.bimchain.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('EngineerOrgMSP.admin', 'EngineerOrgMSP.peer', 'EngineerOrgMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('EngineerOrgMSP.admin', 'EngineerOrgMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('EngineerOrgMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('EngineerOrgMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.engineer.bimchain.com
+        Port: 9051
+
+################################################################################
+#   Capabilities
+################################################################################
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_5: true
+
+################################################################################
+#   Application
+################################################################################
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+################################################################################
+#   Orderer
+################################################################################
+
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - orderer1.bimchain.com:7050
+    - orderer2.bimchain.com:7050
+    - orderer3.bimchain.com:7050
+    - orderer4.bimchain.com:7050
+    - orderer5.bimchain.com:7050
+  EtcdRaft:
+    Consenters:
+      - Host: orderer1.bimchain.com
+        Port: 7050
+        ClientTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer1.bimchain.com/tls/server.crt
+        ServerTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer1.bimchain.com/tls/server.crt
+      - Host: orderer2.bimchain.com
+        Port: 7050
+        ClientTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer2.bimchain.com/tls/server.crt
+        ServerTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer2.bimchain.com/tls/server.crt
+      - Host: orderer3.bimchain.com
+        Port: 7050
+        ClientTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer3.bimchain.com/tls/server.crt
+        ServerTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer3.bimchain.com/tls/server.crt
+      - Host: orderer4.bimchain.com
+        Port: 7050
+        ClientTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer4.bimchain.com/tls/server.crt
+        ServerTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer4.bimchain.com/tls/server.crt
+      - Host: orderer5.bimchain.com
+        Port: 7050
+        ClientTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer5.bimchain.com/tls/server.crt
+        ServerTLSCert: ../crypto-config/ordererOrganizations/bimchain.com/orderers/orderer5.bimchain.com/tls/server.crt
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+
+################################################################################
+#   Channel
+################################################################################
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+################################################################################
+#   Profiles
+################################################################################
+
+Profiles:
+  # Channel participation API profile - includes orderer + application config
+  BIMProjectChannel:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *ArchitectOrg
+        - *EngineerOrg

@@ -1,0 +1,77 @@
+version: "3.8"
+
+networks:
+  bimchain:
+    external: true
+    name: bimchain_network
+
+services:
+  # ---------------------------------------------------------------------------
+  # IPFS Node
+  # ---------------------------------------------------------------------------
+  ipfs:
+    image: ipfs/kubo:latest
+    container_name: bimchain-ipfs
+    environment:
+      - IPFS_PROFILE=server
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs_data:/data/ipfs
+      - ipfs_staging:/export
+    networks:
+      - bimchain
+
+  # ---------------------------------------------------------------------------
+  # Middleware (Fabric Gateway + REST API)
+  # ---------------------------------------------------------------------------
+  middleware:
+    build:
+      context: ../../packages/middleware
+      dockerfile: Dockerfile
+    container_name: bimchain-middleware
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - FABRIC_GATEWAY_PEER=peer0.architect.bimchain.com:7051
+      - FABRIC_CHANNEL_NAME=bim-project
+      - FABRIC_CHAINCODE_NAME=bimchain
+      - IPFS_API_URL=http://ipfs:5001
+      - FABRIC_MSP_ID=ArchitectOrgMSP
+      - FABRIC_CRYPTO_PATH=/etc/hyperledger/fabric
+      - FABRIC_TLS_CERT_PATH=/etc/hyperledger/fabric/tls/ca.crt
+      - FABRIC_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+    ports:
+      - "3001:3001"
+    volumes:
+      - ../crypto-config/peerOrganizations/architect.bimchain.com:/etc/hyperledger/fabric
+    depends_on:
+      - ipfs
+    networks:
+      - bimchain
+
+  # ---------------------------------------------------------------------------
+  # Frontend (Next.js Application)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ../../packages/frontend
+      dockerfile: Dockerfile
+    container_name: bimchain-frontend
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://middleware:3001
+      - HOSTNAME=0.0.0.0
+    ports:
+      - "3000:3000"
+    depends_on:
+      - middleware
+    networks:
+      - bimchain
+
+volumes:
+  ipfs_data:
+  ipfs_staging:

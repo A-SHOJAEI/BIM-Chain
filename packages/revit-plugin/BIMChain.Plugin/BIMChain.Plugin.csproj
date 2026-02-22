@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- When Revit 2026 SDK is available, define REVIT_SDK for conditional compilation -->
+  <PropertyGroup Condition="Exists('H:\Program Files\Autodesk\Revit 2026\RevitAPI.dll')">
+    <DefineConstants>$(DefineConstants);REVIT_SDK</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('H:\Program Files\Autodesk\Revit 2026\RevitAPI.dll')">
+    <Reference Include="RevitAPI">
+      <HintPath>H:\Program Files\Autodesk\Revit 2026\RevitAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>H:\Program Files\Autodesk\Revit 2026\RevitAPIUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

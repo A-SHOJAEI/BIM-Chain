@@ -378,4 +378,4 @@ BIM-Chain's security relies on Hyperledger Fabric's permissioned architecture, m
 
 Licensed under the **Apache License, Version 2.0**. See [LICENSE](LICENSE) for the full text.
 
-Copyright 2025 BIM-Chain Contributors.
+Copyright 2026 Alireza Shojaei.
